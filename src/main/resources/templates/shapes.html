@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Shapes</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        function draw() {
+            var centerX = 500;
+            var centerY = 200;
+
+            var a=  /*[[${a}]]*/ '0';
+            var b = /*[[${b}]]*/ '0';
+            var canvas = document.getElementById('myCanvas');
+             document.getElementById('text').innerHTML =  /*[[${a}]]*/ 'default';
+            var shape= /*[[${shape}]]*/ 'default';
+            var color=/*[[${color}]]*/ 'default';
+            if (canvas.getContext) {
+                var ctx = canvas.getContext('2d');
+                if (color == "Red") {
+                    ctx.fillStyle = '#ff0000'
+                } else if (color == "Blue") {
+                    ctx.fillStyle = '#0000ff'
+                } else if (color == "Green") {
+                    ctx.fillStyle = '#00ff00'
+                }
+            }
+
+            if(shape == "square"){
+                ctx.fillRect(centerX-a/2, centerY-a/2,parseInt(a) ,parseInt(a));
+            }else if(shape == "circle"){
+                ctx.beginPath();
+                ctx.arc(centerX,centerY,parseInt(a),0,2*Math.PI);
+                ctx.fill();
+            }else if(shape == "triangle"){
+                ctx.beginPath();
+                ctx.moveTo(centerX,centerY-a/2);
+                ctx.lineTo(centerX+b/2,centerY+a/2);
+                ctx.lineTo(centerX-b/2,centerY+a/2);
+                ctx.fill();
+            }else if(shape == "ellipse"){
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, parseInt(a), parseInt(b), 90 * Math.PI/180, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.closePath();
+            }else if(shape == "line"){
+                ctx.beginPath();
+                ctx.moveTo(centerX-b/2,centerY);
+                ctx.lineTo(centerX+a/2,centerY);
+                ctx.stroke();
+            }else if(shape == "point"){
+                ctx.fillRect( parseInt(a),  parseInt(b),6 ,6)
+            }
+        }
+
+        /*]]>*/
+    </script>
+</head>
+
+<body onload="draw()">
+<div class="container">
+
+    <div class="panel-group" style="margin-top:40px" th:align="center">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <span th:utext="${text}"></span>
+            </div>
+            <label id="text"></label>
+            <div class="panel-body">
+                <canvas id="myCanvas" width="1000" height="400"> </canvas>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/}" method="get">
+        <button class="btn btn-md btn-danger btn-block" name="back"
+                type="Submit">Back</button>
+    </form>
+
+
+</div>
+</body>
+</html>

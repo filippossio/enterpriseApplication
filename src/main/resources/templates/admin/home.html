@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Draw Shape</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+
+
+
+    <div class="panel-group" style="margin-top:40px" th:align="center">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <span th:utext="${userName}"></span>
+            </div>
+            <h3>Please select shape: </h3>
+            <select id="shapesSelect" onchange="show(this.options[this.selectedIndex].value)">
+                <option value="default">Select</option>
+                <option value="square">Square</option>
+                <option value="triangle">Triangle</option>
+                <option value="line">Line</option>
+                <option value="point">Point</option>
+                <option value="ellipse">Ellipse</option>
+                <option value="circle">Circle</option>
+            </select>
+            <h3>Please select colour: </h3>
+                <select id="colourSelect">
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="black">Black</option>
+                </select>
+            <br/>
+            <br/>
+
+            <input id="a"  style="display: none" onfocus="this.value=''" >
+            <input id="b"  style="display: none" onfocus="this.value=''" >
+
+            <br />
+
+            <form th:id="drawButton"  method="get">
+                <button type="submit">Draw Shape</button>
+            </form>
+                <div class="panel-body">
+                    <canvas id="myCanvas" width="1000" height="200"> </canvas>
+                    <label id="questionLabel"></label>
+                    <input style="display:none" id="questionInput" >
+                    <br/>
+                    <form  th:id="answer"  method="get">
+                        <button id="answerButton" style="display:none" type="submit">Answer</button>
+                    </form>
+                    <label id="answerLabel"></label>
+                </div>
+            <p class="admin-message-text text-center" th:utext="${adminMessage}"></p>
+        </div>
+    </div>
+
+    <form th:action="@{/logout}" method="get">
+        <button class="btn btn-md btn-danger btn-block" name="registration"
+                type="Submit">Logout</button>
+    </form>
+
+
+
+</div>
+<script
+        src="https://code.jquery.com/jquery-3.3.1.min.js"
+        integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+        crossorigin="anonymous"></script>
+
+<script>$(document).ready(function () {
+    $("#answer").submit(function (event) {
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        fire_ajax_submit3();
+    });
+});
+
+function fire_ajax_submit3() {
+    $.ajax({
+        url: "/answer?ans=" + document.getElementById('questionInput').value +
+        "&a=" + document.getElementById('a').value +
+        "&b=" + document.getElementById('b').value +
+        "&shape=" + $('#shapesSelect :selected').text()
+    }).then(function (data3) {
+        if (data3.correct == true) {
+            document.getElementById('answerLabel').innerText = "CORRECT";
+        }else
+            document.getElementById('answerLabel').innerText = "WRONG";
+    });
+}
+
+$(document).ready(function () {
+    $("#drawButton").submit(function (event) {
+        //stop submit the form, we will post it manually.
+        event.preventDefault();
+        fire_ajax_submit();
+        fire_ajax_submit2();
+    });
+});
+
+function fire_ajax_submit() {
+    $.ajax({
+        url: "/drawShape?shape=" + $('#shapesSelect :selected').text() +
+        "&color=" + $('#colourSelect :selected').text() + "&a=" + document.getElementById('a').value + "&b=" + document.getElementById('b').value
+    }).then(function (data) {
+        $('.shape').append(data.shape);
+        $('.color').append(data.color);
+        $('.a').append(data.a);
+        $('.b').append(data.b);
+
+        var centerX = 500;
+        var centerY = 100;
+        var a = data.a * 10;
+        var b = data.b * 10;
+        var canvas = document.getElementById('myCanvas');
+        var shape = data.shape;
+        var color = data.color;
+
+        document.getElementById('answerLabel').innerText = "";
+
+        if (canvas.getContext) {
+            var ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, centerX * 2, centerY * 2);
+            if (color == "Red") {
+                ctx.fillStyle = '#ff0000'
+            } else if (color == "Blue") {
+                ctx.fillStyle = '#0000ff'
+            } else if (color == "Green") {
+                ctx.fillStyle = '#00ff00'
+            } else
+                ctx.fillStyle = 'black'
+        }
+        if (shape == "Square") {
+            ctx.fillRect(centerX - a / 2, centerY - a / 2, parseInt(a), parseInt(a));
+
+        } else if (shape == "Circle") {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, parseInt(a), 0, 2 * Math.PI);
+            ctx.fill();
+        } else if (shape == "Triangle") {
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - a / 2);
+            ctx.lineTo(centerX + b / 2, centerY + a / 2);
+            ctx.lineTo(centerX - b / 2, centerY + a / 2);
+            ctx.fill();
+        } else if (shape == "Ellipse") {
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, parseInt(a), parseInt(b), 90 * Math.PI / 180, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.closePath();
+        } else if (shape == "Line") {
+            ctx.beginPath();
+            ctx.moveTo(centerX - b / 2, centerY);
+            ctx.lineTo(centerX + a / 2, centerY);
+            ctx.stroke();
+        } else if (shape == "Point") {
+            ctx.fillRect(parseInt(a), parseInt(b), 6, 6)
+        }
+
+    });
+
+}
+
+function show(aval) {
+    a.style.display = 'none';
+    b.style.display = 'none';
+    if (aval == "square") {
+        a.style.display = 'inline-block';
+        document.getElementById("a").value = "Insert Length";
+        document.getElementById("b").value = 0;
+        Form.fileURL.focus();
+    }
+    else if (aval == "triangle") {
+        a.style.display = 'inline-block';
+        b.style.display = 'inline-block';
+        document.getElementById("a").value = "Insert Height";
+        document.getElementById("b").value = "Insert Base";
+        Form.fileURL.focus();
+    }
+    else if (aval == "circle") {
+        a.style.display = 'inline-block';
+        document.getElementById("a").value = "Insert Radius";
+        document.getElementById("b").value = 0;
+        Form.fileURL.focus();
+    }
+    else if (aval == "line") {
+        a.style.display = 'inline-block';
+        b.style.display = 'inline-block';
+        document.getElementById("a").value = "Insert X value";
+        document.getElementById("b").value = "Insert Y value";
+        Form.fileURL.focus();
+    }
+    else if (aval == "ellipse") {
+        a.style.display = 'inline-block';
+        b.style.display = 'inline-block';
+        document.getElementById("a").value = "A axis";
+        document.getElementById("b").value = "B axis";
+        Form.fileURL.focus();
+    } else if (aval == "point") {
+        a.style.display = 'inline-block';
+        b.style.display = 'inline-block';
+        document.getElementById("a").value = "Insert X value";
+        document.getElementById("b").value = "Insert Y value";
+        Form.fileURL.focus();
+    }
+}
+
+function fire_ajax_submit2() {
+    $.ajax({
+        url: "/question?shape=" + $('#shapesSelect :selected').text()
+    }).then(function (data1) {
+        $('.question').append(data1.question);
+        document.getElementById('questionLabel').innerText = data1.question;
+        answerButton.style.display = 'inline-block';
+        questionInput.style.display = 'inline-block';
+
+    });
+}
+</script>
+
+</body>
+</html>
